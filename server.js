@@ -7,36 +7,27 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-console.log('SENDGRID_API_KEY carregada?', !!process.env.SENDGRID_API_KEY);
-
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 app.post('/send-email', async (req, res) => {
-  const { to, dados } = req.body;
-
-  console.log('Recebido pedido para:', to);
+  const { to } = req.body;
 
 const msg = {
-  to: to,
+  to,
   from: 'Leozinhoc592@gmail.com',
-  subject: 'Relatório do Paciente',
-  text: `Dados: ${JSON.stringify(dados, null, 2)}`,
-  html: `<pre>Dados: ${JSON.stringify(dados, null, 2)}</pre>`,
+  subject: 'Teste Email',
+  text: 'Oi, testando envio!',
+  html: '<p>Oi, testando envio!</p>',
 };
 
 
   try {
-    console.log('Enviando email...');
     await sgMail.send(msg);
     console.log('Email enviado com sucesso!');
     res.json({ success: true });
-  } catch (error) {
-    console.error(' Erro detalhado:');
-    console.error('Mensagem:', error.message);
-    console.error('Código:', error.code);
-    if (error.response) {
-      console.error('Resposta SendGrid:', error.response.body);
-    }
-    res.status(500).json({ success: false, error: error.message });
+  } catch (err) {
+    console.error('Erro ao enviar:', err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
