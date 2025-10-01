@@ -10,25 +10,24 @@ app.use(express.json());
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 app.post('/send-email', async (req, res) => {
-  const { to, relatorio } = req.body;
+  const { to, relatorio, registros } = req.body;
 
-  if (!to || !relatorio) {
-    return res.status(400).json({ success: false, error: "Faltando email ou relatório" });
+  if (!to || !relatorio || !registros) {
+    return res.status(400).json({ success: false, error: "Faltando email, relatório ou registros" });
   }
 
   try {
- 
-    const relatorioJSON = JSON.stringify(relatorio, null, 2);
+    const dadosJSON = JSON.stringify({ relatorio, registros }, null, 2);
 
     const msg = {
       to,
       from: 'Leozinhoc592@gmail.com',
       subject: 'Relatório do Paciente',
-      text: 'Segue em anexo o relatório em JSON.',
+      text: 'Segue em anexo o relatório completo em JSON.',
       attachments: [
         {
-          content: Buffer.from(relatorioJSON).toString('base64'),
-          filename: 'relatorio.json',
+          content: Buffer.from(dadosJSON).toString('base64'),
+          filename: 'relatorio_completo.json',
           type: 'application/json',
           disposition: 'attachment',
         },
@@ -36,10 +35,8 @@ app.post('/send-email', async (req, res) => {
     };
 
     await sgMail.send(msg);
-    console.log('Email enviado com sucesso para:', to);
     res.json({ success: true });
   } catch (err) {
-    console.error('Erro ao enviar:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
