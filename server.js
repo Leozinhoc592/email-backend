@@ -10,20 +10,33 @@ app.use(express.json());
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 app.post('/send-email', async (req, res) => {
-  const { to } = req.body;
+  const { to, relatorio } = req.body;
 
-const msg = {
-  to,
-  from: 'Leozinhoc592@gmail.com',
-  subject: 'Teste Email',
-  text: 'Oi, testando envio!',
-  html: '<p>Oi, testando envio!</p>',
-};
-
+  if (!to || !relatorio) {
+    return res.status(400).json({ success: false, error: "Faltando email ou relatório" });
+  }
 
   try {
+ 
+    const relatorioJSON = JSON.stringify(relatorio, null, 2);
+
+    const msg = {
+      to,
+      from: 'Leozinhoc592@gmail.com',
+      subject: 'Relatório do Paciente',
+      text: 'Segue em anexo o relatório em JSON.',
+      attachments: [
+        {
+          content: Buffer.from(relatorioJSON).toString('base64'),
+          filename: 'relatorio.json',
+          type: 'application/json',
+          disposition: 'attachment',
+        },
+      ],
+    };
+
     await sgMail.send(msg);
-    console.log('Email enviado com sucesso!');
+    console.log('Email enviado com sucesso para:', to);
     res.json({ success: true });
   } catch (err) {
     console.error('Erro ao enviar:', err);
